@@ -1,4 +1,4 @@
-# Projects from AI for Healthcare Nanodegree Program of Udacity
+# Udacity - AI for Healthcare Nanodegree Program
 
 Learn to build, evaluate, and integrate predictive models that have the power to transform
 patient outcomes. Begin by classifying and segmenting 2D and 3D medical images to augment diagnosis
