@@ -108,3 +108,4 @@ venv.bak/
 *.hdf5
 # data
 *.pkl
+*.pth

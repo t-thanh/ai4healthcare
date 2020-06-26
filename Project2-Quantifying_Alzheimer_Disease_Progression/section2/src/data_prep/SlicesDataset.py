@@ -47,7 +47,11 @@ class SlicesDataset(Dataset):
         # and the slice number are in the slc variable. 
         # Hint2: You can use None notation like so: arr[None, :] to add size-1 
         # dimension to a Numpy array
-        # <YOUR CODE GOES HERE>
+
+        image_idx, slice_idx = slc
+        
+        sample['image'] = torch.from_numpy(self.data[image_idx]['image'][slice_idx, :, :][None, :])
+        sample['seg'] = torch.from_numpy(self.data[image_idx]['seg'][slice_idx, :, :][None, :])
 
         return sample
 
