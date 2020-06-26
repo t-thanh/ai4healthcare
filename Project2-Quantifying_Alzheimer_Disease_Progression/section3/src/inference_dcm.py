@@ -1,7 +1,6 @@
 """
 Here we do inference on a DICOM volume, constructing the volume first, and then sending it to the
 clinical archive
-
 This code will do the following:
     1. Identify the series to run HippoCrop.AI algorithm on from a folder containing multiple studies
     2. Construct a NumPy volume from a set of DICOM files
@@ -29,10 +28,8 @@ from inference.UNetInferenceAgent import UNetInferenceAgent
 def load_dicom_volume_as_numpy_from_list(dcmlist):
     """Loads a list of PyDicom objects a Numpy array.
     Assumes that only one series is in the array
-
     Arguments:
         dcmlist {list of PyDicom objects} -- path to directory
-
     Returns:
         tuple of (3D volume, header of the 1st image)
     """
@@ -52,28 +49,32 @@ def load_dicom_volume_as_numpy_from_list(dcmlist):
 
 def get_predicted_volumes(pred):
     """Gets volumes of two hippocampal structures from the predicted array
-
     Arguments:
         pred {Numpy array} -- array with labels. Assuming 0 is bg, 1 is anterior, 2 is posterior
-
     Returns:
         A dictionary with respective volumes
     """
 
     # TASK: Compute the volume of your hippocampal prediction
     # <YOUR CODE HERE>
-
-    return {"anterior": volume_ant, "posterior": volume_post, "total": total_volume}
+    anterior_vol, posterior_vol = 0, 0
+    for i in range(pred.shape[0]):
+        for j in range(pred.shape[1]):
+            for k in range(pred.shape[2]):
+                if pred[i, j, k] == 1:
+                    anterior_vol += 1
+                elif pred[i, j, k] == 2:
+                    posterior_vol += 1
+    total_vol = anterior_vol + posterior_vol
+    return {"anterior": anterior_vol, "posterior": posterior_vol, "total": total_vol}
 
 def create_report(inference, header, orig_vol, pred_vol):
     """Generates an image with inference report
-
     Arguments:
         inference {Dictionary} -- dict containing anterior, posterior and full volume values
         header {PyDicom Dataset} -- DICOM header
         orig_vol {Numpy array} -- original volume
         pred_vol {Numpy array} -- predicted label
-
     Returns:
         PIL image
     """
@@ -81,8 +82,8 @@ def create_report(inference, header, orig_vol, pred_vol):
     # The code below uses PIL image library to compose an RGB image that will go into the report
     # A standard way of storing measurement data in DICOM archives is creating such report and
     # sending them on as Secondary Capture IODs (http://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_A.8.html)
-    # Essentially, our report is just a standard RGB image, with some metadata, packed into 
-    # DICOM format. 
+    # Essentially, our report is just a standard RGB image, with some metadata, packed into
+    # DICOM format.
 
     pimg = Image.new("RGB", (1000, 1000))
     draw = ImageDraw.Draw(pimg)
@@ -93,17 +94,16 @@ def create_report(inference, header, orig_vol, pred_vol):
     slice_nums = [orig_vol.shape[2]//3, orig_vol.shape[2]//2, orig_vol.shape[2]*3//4] # is there a better choice?
 
     # TASK: Create the report here and show information that you think would be relevant to
-    # clinicians. A sample code is provided below, but feel free to use your creative 
-    # genius to make if shine. After all, the is the only part of all our machine learning 
+    # clinicians. A sample code is provided below, but feel free to use your creative
+    # genius to make if shine. After all, the is the only part of all our machine learning
     # efforts that will be visible to the world. The usefulness of your computations will largely
     # depend on how you present them.
 
     # SAMPLE CODE BELOW: UNCOMMENT AND CUSTOMIZE
-    # draw.text((10, 0), "HippoVolume.AI", (255, 255, 255), font=header_font)
-    # draw.multiline_text((10, 90),
-    #                     f"Patient ID: {header.PatientID}\n"
-    #                       <WHAT OTHER INFORMATION WOULD BE RELEVANT?>
-    #                     (255, 255, 255), font=main_font)
+    draw.text((10, 0), "HippoVolume.AI", (255, 255, 255), font=header_font)
+    draw.multiline_text((10, 90),
+                        f"Patient ID: {header.PatientID}\n Hippocampal total volume: {inference['total']}\n Anterior volume: {inference['anterior']}\n Posterior volume: {inference['posterior']}",
+                        (255, 255, 255), font=main_font)
 
     # STAND-OUT SUGGESTION:
     # In addition to text data in the snippet above, can you show some images?
@@ -112,29 +112,26 @@ def create_report(inference, header, orig_vol, pred_vol):
     #
     # Create a PIL image from array:
     # Numpy array needs to flipped, transposed and normalized to a matrix of values in the range of [0..255]
-    # nd_img = np.flip((slice/np.max(slice))*0xff).T.astype(np.uint8)
+    nd_img = np.flip((orig_vol[slice_nums[0],:,:]/np.max(orig_vol))*0xff).T.astype(np.uint8)
     # This is how you create a PIL image from numpy array
-    # pil_i = Image.fromarray(nd_img, mode="L").convert("RGBA").resize(<dimensions>)
+    pil_i = Image.fromarray(nd_img, mode="L").convert("RGBA").resize(nd_img.shape)
     # Paste the PIL image into our main report image object (pimg)
-    # pimg.paste(pil_i, box=(10, 280))
-
+    pimg.paste(pil_i, box=(10, 280))
     return pimg
 
 def save_report_as_dcm(header, report, path):
     """Writes the supplied image as a DICOM Secondary Capture file
-
     Arguments:
         header {PyDicom Dataset} -- original DICOM file header
         report {PIL image} -- image representing the report
         path {Where to save the report}
-
     Returns:
         N/A
     """
 
     # Code below creates a DICOM Secondary Capture instance that will be correctly
     # interpreted by most imaging viewers including our OHIF
-    # The code here is complete as it is unlikely that as a data scientist you will 
+    # The code here is complete as it is unlikely that as a data scientist you will
     # have to dive that deep into generating DICOMs. However, if you still want to understand
     # the subject, there are some suggestions below
 
@@ -144,7 +141,7 @@ def save_report_as_dcm(header, report, path):
     out.file_meta = pydicom.Dataset()
     out.file_meta.TransferSyntaxUID = pydicom.uid.ExplicitVRLittleEndian
 
-    # STAND OUT SUGGESTION: 
+    # STAND OUT SUGGESTION:
     # If you want to understand better the generation of valid DICOM, remove everything below
     # and try writing your own DICOM generation code from scratch.
     # Refer to this part of the standard to see what are the requirements for the valid
@@ -205,10 +202,8 @@ def save_report_as_dcm(header, report, path):
 def get_series_for_inference(path):
     """Reads multiple series from one folder and picks the one
     to run inference on.
-
     Arguments:
         path {string} -- location of the DICOM files
-
     Returns:
         Numpy array representing the series
     """
@@ -216,20 +211,25 @@ def get_series_for_inference(path):
     # Here we are assuming that path is a directory that contains a full study as a collection
     # of files
     # We are reading all files into a list of PyDicom objects so that we can filter them later
-    dicoms = [pydicom.dcmread(os.path.join(path, f)) for f in os.listdir(path)]
+    #dicoms = [pydicom.dcmread(os.path.join(path, f)) for f in os.listdir(path)]
+    dicoms = []
+    for _ , subdirs, _ in os.walk(path):
+        for subdir in subdirs:
+            dicoms.extend([pydicom.dcmread(os.path.join(path, subdir, f)) for f in os.listdir(os.path.join(path, subdir))])
 
-    # TASK: create a series_for_inference variable that will contain a list of only 
-    # those PyDicom objects that represent files that belong to the series that you 
+    # TASK: create a series_for_inference variable that will contain a list of only
+    # those PyDicom objects that represent files that belong to the series that you
     # will run inference on.
     # It is important to note that radiological modalities most often operate in terms
-    # of studies, and it will most likely be on you to establish criteria for figuring 
-    # out which one of the multiple series sent by the scanner is the one you need to feed to 
-    # your algorithm. In our case it's rather easy - we have reached an agreement with 
-    # people who configured the HippoCrop tool and they label the output of their tool in a 
-    # certain way. Can you figure out which is that? 
+    # of studies, and it will most likely be on you to establish criteria for figuring
+    # out which one of the multiple series sent by the scanner is the one you need to feed to
+    # your algorithm. In our case it's rather easy - we have reached an agreement with
+    # people who configured the HippoCrop tool and they label the output of their tool in a
+    # certain way. Can you figure out which is that?
     # Hint: inspect the metadata of HippoCrop series
 
     # <YOUR CODE HERE>
+    series_for_inference = [d for d in dicoms if d.SeriesDescription=="HippoCrop"]
 
     # Check if there are more than one series (using set comprehension).
     if len({f.SeriesInstanceUID for f in series_for_inference}) != 1:
@@ -253,7 +253,7 @@ if __name__ == "__main__":
         print("You should supply one command line argument pointing to the routing folder. Exiting.")
         sys.exit()
 
-    # Find all subdirectories within the supplied directory. We assume that 
+    # Find all subdirectories within the supplied directory. We assume that
     # one subdirectory contains a full study
     subdirs = [os.path.join(sys.argv[1], d) for d in os.listdir(sys.argv[1]) if
                 os.path.isdir(os.path.join(sys.argv[1], d))]
@@ -271,11 +271,11 @@ if __name__ == "__main__":
     # TASK: Use the UNetInferenceAgent class and model parameter file from the previous section
     inference_agent = UNetInferenceAgent(
         device="cpu",
-        parameter_file_path=r"<PATH TO PARAMETER FILE>")
+        parameter_file_path=r"./model.pth")
 
     # Run inference
-    # TASK: single_volume_inference_unpadded takes a volume of arbitrary size 
-    # and reshapes y and z dimensions to the patch size used by the model before 
+    # TASK: single_volume_inference_unpadded takes a volume of arbitrary size
+    # and reshapes y and z dimensions to the patch size used by the model before
     # running inference. Your job is to implement it.
     pred_label = inference_agent.single_volume_inference_unpadded(np.array(volume))
     # TASK: get_predicted_volumes is not complete. Go and complete it
@@ -283,8 +283,8 @@ if __name__ == "__main__":
 
     # Create and save the report
     print("Creating and pushing report...")
-    report_save_path = r"<TEMPORARY PATH TO SAVE YOUR REPORT FILE>"
-    # TASK: create_report is not complete. Go and complete it. 
+    report_save_path = r"../out/report.dcm"
+    # TASK: create_report is not complete. Go and complete it.
     # STAND OUT SUGGESTION: save_report_as_dcm has some suggestions if you want to expand your
     # knowledge of DICOM format
     report_img = create_report(pred_volumes, header, volume, pred_label)
@@ -293,7 +293,7 @@ if __name__ == "__main__":
     # Send report to our storage archive
     # TASK: Write a command line string that will issue a DICOM C-STORE request to send our report
     # to our Orthanc server (that runs on port 4242 of the local machine), using storescu tool
-    os_command("<COMMAND LINE TO SEND REPORT TO ORTHANC>")
+    os_command("storescu localhost 4242 -v -aec HIPPOAI +r +sd ../out/report.dcm")
 
     # This line will remove the study dir if run as root user
     # Sleep to let our StoreSCP server process the report (remember - in our setup
