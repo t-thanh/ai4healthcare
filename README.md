@@ -1,5 +1,7 @@
 # Udacity - AI for Healthcare Nanodegree Program
 
+<a href="https://graduation.udacity.com/confirm/CSGVGYNE">![ai4healthcare](certificate.png)</a>
+
 Learn to build, evaluate, and integrate predictive models that have the power to transform
 patient outcomes. Begin by classifying and segmenting 2D and 3D medical images to augment diagnosis
 and then move on to modeling patient outcomes with electronic health records to optimize clinical trial
