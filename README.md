@@ -31,12 +31,16 @@ Hippocampus is one of the major structures of the human brain with functions tha
 Learn the fundamental skills to work with EHR data and build and evaluate compliant, interpretable models. You will cover EHR data privacy and security standards, how to analyze EHR data and avoid common challenges, and cover key industry code sets. By the end of the course, you will have the skills to analyze an EHR dataset, transform it to the right level, build powerful features with TensorFlow, and model the uncertainty and bias with TensorFlow Probability and Aequitas.
 
 ### Project: [Patient Selection for Diabetes Drug Testing](https://github.com/t-thanh/ai4healthcare/tree/master/Project3_Applying_AI_to_EHR_Data)
+
 <a href="https://github.com/t-thanh/ai4healthcare/tree/master/Project3_Applying_AI_to_EHR_Data">![project3](images/project_3.png)</a>
+
 In this project, you are a data scientist for an exciting unicorn healthcare startup that has created a groundbreaking diabetes drug that is ready for clinical trial testing. You will work with real, de-identified EHR data to build a regression model to predict the estimated hospitalization time for a patient and select/filter patients for your study.
 
 ## Applying AI to Wearable Device Data
 Learn how to build algorithms that process the data collected by wearable devices and surface insights about the wearer’s health. Cover the sensors and signal processing foundation that are critical for success in this domain, including IMU, PPG, and ECG that are common to most wearable devices, and learn how to build three algorithms from real-world sensor data.
 
 ### Project: [Motion Compensated Pulse Rate Estimation](https://github.com/t-thanh/ai4healthcare/tree/master/Project4_Pulse_Rate_Estimation)
+
 <a href="https://github.com/t-thanh/ai4healthcare/tree/master/Project4_Pulse_Rate_Estimation">![project4](Project4_Pulse_Rate_Estimation/heart-rate-age-reference-chart.jpg)</a>
+
 Wearable devices have multiple sensors all collecting information about the same person at the same time. Combining these data streams allows us to accomplish many tasks that would be impossible from a single sensor. In this project, you will build an algorithm that combines information from two of the sensors that are covered in this course -- the IMU and PPG sensors -- to build an algorithm that can estimate the wearer’s pulse rate in the presence of motion. By only providing necessary background information and minimal starter code, this project puts you in the same position as a data scientist working for a wearable device company. You will have to rely on your knowledge of the sensors, the techniques that you have learned in this course, and your own creativity to design and implement an algorithm that accomplishes the task set out for you.
